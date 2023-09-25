@@ -20,12 +20,13 @@ function postCreate() {
     titleText.animation.addByPrefix("idle", "EnterIdle0", 24);
     titleText.animation.addByPrefix("press", "EnterStart0", 24, false);
     titleText.animation.play("idle");
+    titleText.frameOffset.set(0, 0);
 }
 
 function postUpdate(delta:Float) {
     starFG.x -= delta * 60 * 0.3;
     starBG.x -= delta * 60 * 0.1;
-
+    
     if(controls.ACCEPT)
         titleText.frameOffset.set(275, 2);
 }
