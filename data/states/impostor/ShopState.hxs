@@ -1,0 +1,10 @@
+function create() {
+    var lol = new FlxText(0, 0, 0, "not done yet dumbass\npress ur back bind to go back to main menu", 32);
+    lol.screenCenter();
+    add(lol);
+}
+
+function update(delta:Float) {
+    if(controls.BACK)
+        FlxG.switchState(new ModState("impostor/MainMenu"));
+}

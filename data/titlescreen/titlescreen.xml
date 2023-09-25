@@ -1,0 +1,62 @@
+<!DOCTYPE codename-titlestate >
+<titlestate>
+	<sprites folder="menus/titlescreen">
+		<sprite name="logo" sprite="logo" x="220" y="0" />
+		<!-- <sprite name="enter" sprite="titleEnter" x="0" y="570" /> -->
+	</sprites>
+
+	<intro length="16">
+		<text beat="1">
+			<line text="impostorm" />
+			<line text="swordcube" />
+		</text>
+
+		<text beat="3">
+			<line text="impostorm" />
+			<line text="swordcube" />
+			<line text="presents" />
+		</text>
+
+		<text beat="4" /> <!-- clears the screen !-->
+
+		<text beat="5">
+			<line text="In association" />
+			<line text="with" />
+		</text>
+
+		<text beat="7">
+			<line text="In association" />
+			<line text="with" />
+			<line text="pain" />
+			<sprite path="menus/titlescreen/suffering" scale="0.8"/>
+		</text>
+
+		<text beat="8" /> <!-- clears the screen !-->
+
+		<text beat="9">
+			<introtext line="1" />
+		</text>
+
+		<text beat="11">
+			<introtext line="1" />
+			<introtext line="2" />
+		</text>
+
+		<text beat="12"/>
+
+		<text beat="13">
+			<line text="Friday" />
+		</text>
+
+		<text beat="14">
+			<line text="Friday" />
+			<line text="Night" />
+		</text>
+
+		<text beat="15">
+			<line text="Friday" />
+			<line text="Night" />
+			<line text="Funkin" />
+		</text>
+	</intro>
+</titlestate>

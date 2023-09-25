@@ -1,0 +1,199 @@
+import Sys;
+
+import flixel.text.FlxTextAlign;
+import flixel.text.FlxTextBorderStyle;
+import flixel.addons.display.FlxBackdrop;
+
+import funkin.menus.ModSwitchMenu;
+import funkin.menus.credits.CreditsMain;
+import funkin.options.OptionsMenu;
+import funkin.editors.EditorPicker;
+
+var starFG:FlxBackdrop;
+var starBG:FlxBackdrop;
+
+var redImpostor:FlxSprite;
+var greenImpostor:FlxSprite;
+var vignette:FlxSprite;
+
+var curSelected:Int = 0;
+var menuBtns:Array<FlxSprite> = [];
+var mouseAllowage:Bool = true;
+
+function create() {
+    FlxG.mouse.visible = true;
+
+    starBG = new FlxBackdrop(Paths.image('menus/mainmenu/starBG'), FlxAxes.XY, 1, 1);
+    add(starBG);
+
+    starFG = new FlxBackdrop(Paths.image('menus/mainmenu/starFG'), FlxAxes.XY, 1, 1);
+    add(starFG);
+
+    redImpostor = new FlxSprite(350, -160);
+    redImpostor.frames = Paths.getSparrowAtlas('menus/mainmenu/redmenu');
+    redImpostor.animation.addByPrefix('idle', 'red idle', 24, true);
+    redImpostor.animation.addByPrefix('select', 'red select', 24, false);
+    redImpostor.animation.play('idle');
+    redImpostor.scale.set(0.7, 0.7);
+    add(redImpostor);
+
+    greenImpostor = new FlxSprite(-300, -60);
+    greenImpostor.frames = Paths.getSparrowAtlas('menus/mainmenu/greenmenu');
+    greenImpostor.animation.addByPrefix('idle', 'green idle', 24, true);
+    greenImpostor.animation.addByPrefix('select', 'green select', 24, false);
+    greenImpostor.animation.play('idle');
+    greenImpostor.scale.set(0.7, 0.7);
+    add(greenImpostor);
+
+    vignette = new FlxSprite(0, 0).loadGraphic(Paths.image('menus/mainmenu/vignette'));
+    vignette.active = false;
+    add(vignette);
+
+    var versionShit:FlxText = new FlxText(12, FlxG.height, 0, "VS Impostor v4.1.0\nPress TAB to switch mods", 12);
+    versionShit.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, FlxTextAlign.LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+    versionShit.y -= versionShit.height;
+    add(versionShit);
+
+    var logo:FlxSprite = new FlxSprite();
+    logo.frames = Paths.getSparrowAtlas('menus/titlescreen/logo');
+    logo.screenCenter();
+    logo.scale.set(0.65, 0.65);
+    logo.y -= 160;
+    add(logo);
+
+    var optionShit:Array<String> = [
+        'Story Mode', 'Freeplay', 'Gallery', 'Credits', 'Options', 'Shop', 'Innersloth'
+    ];
+    for(i in 0...optionShit.length) {
+        var btn:FlxSprite = new FlxSprite(0, 130);
+        btn.ID = i;
+
+        if(i > 3)
+            btn.frames = Paths.getSparrowAtlas('menus/mainmenu/Buttons_UI');
+        else
+            btn.frames = Paths.getSparrowAtlas('menus/mainmenu/Big_Buttons_UI');
+
+        btn.animation.addByPrefix('idle', optionShit[i] + ' Button', 24, true);
+        btn.animation.addByPrefix('hover', optionShit[i] + ' Select', 24, true);
+        btn.animation.play('idle');
+        btn.antialiasing = Options.antialiasing;
+        btn.scale.set(0.5, 0.5);
+        btn.updateHitbox();
+
+        if(i < 4) {
+            btn.x = (i % 2 == 0) ? 400 : 633;
+            btn.y = (i < 2) ? 475 : 580;
+        } else {
+            btn.x = 455 + ((i - 4) * 135);
+            btn.y = 640;
+        }
+
+        menuBtns.push(btn);
+        add(btn);
+    }
+
+    for(fuck in [starBG, starFG, versionShit, redImpostor, greenImpostor, logo])
+        fuck.antialiasing = Options.antialiasing;
+}
+
+function update(delta:Float) {
+    if(FlxG.sound.music.volume < 0.8)
+        FlxG.sound.music.volume += delta * 0.5;
+
+    if(controls.BACK)
+        FlxG.switchState(new TitleState());
+
+    if(controls.SWITCHMOD) {
+        persistentUpdate = false;
+        persistentDraw = true;
+        openSubState(new ModSwitchMenu());
+    }
+
+    if (FlxG.keys.justPressed.SEVEN) {
+        persistentUpdate = false;
+        persistentDraw = true;
+        openSubState(new EditorPicker());
+    }
+
+    starFG.x -= delta * 60 * 0.3;
+    starBG.x -= delta * 60 * 0.1;
+
+    if(!mouseAllowage) return;
+    for(btn in menuBtns) {
+        if(FlxG.mouse.overlaps(btn)) {
+            if(btn.animation.name != "hover")
+                CoolUtil.playMenuSFX(0, 0.5);
+
+            curSelected = btn.ID;
+            btn.animation.play("hover");
+
+            if(FlxG.mouse.justPressed) {
+                mouseAllowage = false;
+                handleMenuButton(btn.ID);
+            }
+        } else
+            btn.animation.play("idle");
+    }
+}
+
+function doCoolAnimation(callback:Void->Void) {
+    CoolUtil.playMenuSFX(1);
+    greenImpostor.animation.play('select');
+    redImpostor.animation.play('select');
+
+    FlxTween.tween(starFG, {y: starFG.y + 500}, 0.7, {ease: FlxEase.quadInOut});
+    FlxTween.tween(starBG, {y: starBG.y + 500}, 0.7, {ease: FlxEase.quadInOut, startDelay: 0.2});
+    FlxTween.tween(greenImpostor, {y: greenImpostor.y + 800}, 0.7, {ease: FlxEase.quadInOut, startDelay: 0.24});
+    FlxTween.tween(redImpostor, {y: redImpostor.y + 800}, 0.7, {ease: FlxEase.quadInOut, startDelay: 0.3});
+    FlxG.camera.fade(FlxColor.BLACK, 0.7, false);
+
+    for(btn in menuBtns) {
+        if(curSelected == btn.ID) continue;
+        FlxTween.tween(btn, {alpha: 0}, 1.3, {ease: FlxEase.quadOut});
+    }
+
+    new FlxTimer().start(1, (_) -> {
+        if(callback != null)
+            callback();
+    });
+}
+
+function handleMenuButton(id:Int) {
+    switch(id) {
+        case 0: // story
+            doCoolAnimation(() -> FlxG.switchState(new StoryMenuState()));
+
+        case 1: // freeplay
+            doCoolAnimation(() -> FlxG.switchState(new FreeplayState()));
+
+        case 2: // gallery
+            openURL('https://vsimpostor.com/');
+            mouseAllowage = true;
+            
+        case 3: // credits
+            doCoolAnimation(() -> FlxG.switchState(new CreditsMain()));
+            
+        case 4: // settings
+            doCoolAnimation(() -> FlxG.switchState(new OptionsMenu()));
+            
+        case 5: // shop
+            doCoolAnimation(() -> FlxG.switchState(new ModState("impostor/ShopState")));
+        
+        case 6: // innersloth
+            openURL('https://www.innersloth.com/');
+            mouseAllowage = true;
+    }
+}
+
+function openURL(url:String) {
+    // i'm so fucking happy these flags just work
+    #if linux
+    Sys.command('/usr/bin/xdg-open', [url]);
+    #else
+    FlxG.openURL(url);
+    #end
+}
+
+function onDestroy() {
+    FlxG.mouse.visible = false;
+}

@@ -1,0 +1,31 @@
+// had to make a script cuz some shit in titlescreen.xml
+// ain't working right
+
+import flixel.addons.display.FlxBackdrop;
+
+var starFG:FlxBackdrop;
+var starBG:FlxBackdrop;
+
+function postCreate() {
+    remove(members[0]); // fuck you
+
+    starBG = new FlxBackdrop(Paths.image('menus/mainmenu/starBG'), FlxAxes.XY, 1, 1);
+    insert(0, starBG);
+    
+    starFG = new FlxBackdrop(Paths.image('menus/mainmenu/starFG'), FlxAxes.XY, 1, 1);
+    insert(0, starFG);
+
+    titleText.x += 190;
+    titleText.y -= 5;
+    titleText.animation.addByPrefix("idle", "EnterIdle0", 24);
+    titleText.animation.addByPrefix("press", "EnterStart0", 24, false);
+    titleText.animation.play("idle");
+}
+
+function postUpdate(delta:Float) {
+    starFG.x -= delta * 60 * 0.3;
+    starBG.x -= delta * 60 * 0.1;
+
+    if(controls.ACCEPT)
+        titleText.frameOffset.set(275, 2);
+}
