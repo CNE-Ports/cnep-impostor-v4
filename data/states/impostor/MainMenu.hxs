@@ -1,4 +1,5 @@
 import Sys;
+import Reflect;
 
 import flixel.text.FlxTextAlign;
 import flixel.text.FlxTextBorderStyle;
@@ -49,7 +50,10 @@ function create() {
     vignette.active = false;
     add(vignette);
 
-    var versionShit:FlxText = new FlxText(12, FlxG.height, 0, "VS Impostor v4.1.0\nPress TAB to switch mods", 12);
+    var switchModBinds = Reflect.field(Options, 'P1_SWITCHMOD');
+    var switchModBinds2 = Reflect.field(Options, 'P2_SWITCHMOD');
+
+    var versionShit:FlxText = new FlxText(12, FlxG.height, 0, "VS Impostor v4.1.0\nPress "+CoolUtil.keyToString(switchModBinds[0])+(switchModBinds2[0] > 0 ? "/"+CoolUtil.keyToString(switchModBinds2[0]) : "")+" to switch mods", 12);
     versionShit.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, FlxTextAlign.LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     versionShit.y -= versionShit.height;
     add(versionShit);

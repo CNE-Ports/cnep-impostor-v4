@@ -1,9 +1,9 @@
 function postCreate() {
     FlxG.camera.visible = false;
 
-    // have to wait 0.1 seconds otherwise
+    // have to wait 0.5 seconds otherwise
     // it switches too fast and breaks
-    new FlxTimer().start(0.1, (_) -> {
+    new FlxTimer().start(0.5, (_) -> {
         FlxG.switchState(new ModState("impostor/MainMenu"));
     });
 }
