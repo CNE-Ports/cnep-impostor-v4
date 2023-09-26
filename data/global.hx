@@ -22,7 +22,7 @@ function postUpdate(delta:Float) {
     if(FlxG.keys.justPressed.F6)
         logsScript.call("toggle", []);
 
-    logsScript.update(delta);
+    logsScript.call("update", [delta]);
 }
 
 function onDestroy() {
