@@ -9,6 +9,7 @@ import funkin.menus.ModSwitchMenu;
 import funkin.menus.credits.CreditsMain;
 import funkin.options.OptionsMenu;
 import funkin.editors.EditorPicker;
+import funkin.backend.utils.DiscordUtil;
 
 var starFG:FlxBackdrop;
 var starBG:FlxBackdrop;
@@ -23,6 +24,9 @@ var mouseAllowage:Bool = true;
 
 function create() {
     FlxG.mouse.visible = true;
+
+    DiscordUtil.changePresence("In the Menus", null);
+	CoolUtil.playMenuSong();
 
     starBG = new FlxBackdrop(Paths.image('menus/mainmenu/starBG'), FlxAxes.XY, 1, 1);
     add(starBG);

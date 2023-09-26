@@ -3,6 +3,7 @@ import openfl.text.TextField;
 import openfl.text.TextFormat;
 import openfl.display.Bitmap;
 import openfl.geom.Rectangle;
+import haxe.Log;
 
 // TODO: scrolling
 
@@ -21,132 +22,177 @@ var window = FlxG.stage.application.window;
 var logs:Array<Dynamic> = [];
 
 function enterFrame(deltaTime:Int) {
-    if (!container.visible) return;
+	if (!container.visible) return;
 
-    container.graphics.clear();
-    container.graphics.beginFill(FlxColor.BLACK, 0.5);
-    container.graphics.drawRect(0, 0, window.width, window.height);
-    container.graphics.endFill();
-    
-    logContainer.graphics.clear();
-    var logSize:Array<Int> = [window.width, 25];
+	container.graphics.clear();
+	container.graphics.beginFill(FlxColor.BLACK, 0.5);
+	container.graphics.drawRect(0, 0, window.width, window.height);
+	container.graphics.endFill();
+	
+	logContainer.graphics.clear();
+	var logSize:Array<Int> = [window.width, 25];
 
-    for(i => log in logs) {
-        var logY:Int = ((logSize[1] + 3) * i) - scrollY;
-        var color:Int = switch(log.icon) {
-            case 0: FlxColor.CYAN;
-            case 1: FlxColor.YELLOW;
-            case 2: FlxColor.RED;
-            default: FlxColor.WHITE;
-        };
+	for(i => log in logs) {
+		var logY:Int = ((logSize[1] + 3) * i) - scrollY;
+		var color:Int = switch(log.icon) {
+			case 0: FlxColor.CYAN;
+			case 1: FlxColor.YELLOW;
+			case 2: FlxColor.RED;
+			default: FlxColor.WHITE;
+		};
 
-        logContainer.graphics.beginFill(color, 0.3);
-        logContainer.graphics.drawRect(0, logY, logSize[0], logSize[1]);
-        logContainer.graphics.endFill();
+		logContainer.graphics.beginFill(color, 0.3);
+		logContainer.graphics.drawRect(0, logY, logSize[0], logSize[1]);
+		logContainer.graphics.endFill();
 
-        log.iconSpr.x = 5;
-        log.iconSpr.y = logY + 4;
+		log.iconSpr.x = 5;
+		log.iconSpr.y = logY + 4;
 
-        log.txt.x = 25;
-        log.txt.y = logY + 2;
-    }
+		log.txt.x = 25;
+		log.txt.y = logY + 2;
 
-    // just wanting to see how this looks lol  ~ xavi.
-    // it looks good thx man :]
-    titleText.x = 15;
-    titleText.y = 5;
-    infoTxt.x = (window.width - infoTxt.width) - 15;
-    infoTxt.y = 5;
+		log.fileTxt.x = window.width - log.fileTxt.width - 5;
+		log.fileTxt.y = logY + 2;
+	}
 
-    logContainer.scrollRect.width = window.width;
-    logContainer.scrollRect.height = window.height - 35;
+	// just wanting to see how this looks lol  ~ xavi.
+	// it looks good thx man :]
+	titleText.x = 15;
+	titleText.y = 5;
+	infoTxt.x = (window.width - infoTxt.width) - 15;
+	infoTxt.y = 5;
 
-    scrollMult = FlxMath.lerp(scrollMult, 0, FlxG.elapsed * 7);
-    if(FlxG.mouse.wheel != 0)
-        scrollMult = (FlxG.mouse.wheel * 20);
+	logContainer.scrollRect.width = window.width;
+	logContainer.scrollRect.height = window.height - 35;
 
-    if(logs.length >= 22 && Math.abs(scrollMult) > 0.01) {
-        scrollY += scrollMult;
-        if(scrollY > (logs.length * 28) - 35) scrollY = (logs.length * 28) - 35;
-        if(scrollY < 0) scrollY = 0;
-    }
+	scrollMult = FlxMath.lerp(scrollMult, 0, FlxG.elapsed * 7);
+	if(FlxG.mouse.wheel != 0)
+		scrollMult = (FlxG.mouse.wheel * 20);
 
-    if(FlxG.keys.justPressed.F7)
-        clearLogs();
+	if(logs.length >= 22 && Math.abs(scrollMult) > 0.01) {
+		scrollY += scrollMult;
+		if(scrollY > (logs.length * 28) - 35) scrollY = (logs.length * 28) - 35;
+		if(scrollY < 0) scrollY = 0;
+	}
+
+	if(FlxG.keys.justPressed.F7)
+		clearLogs();
 }
 
 function toggle() {
-    container.visible = !container.visible;
+	container.visible = !container.visible;
+	logContainer.visible = container.visible;
+}
+
+function replaceTrace() {
+	if(FlxG.state.stateScript != null) {
+		// TODO: replace with some kind of onScriptCreated in the future
+		FlxG.state.stateScript.set("trace", Reflect.makeVarArgs((args) -> {
+			var v:String = Std.string(args.shift());
+			for(a in args) v += ", " + Std.string(a);
+			FlxG.state.stateScript.trace(v);
+
+			var posInfo = FlxG.state.stateScript.interp.posInfos();
+			log(v, 0, posInfo);
+		}));
+	}
+
+	if((FlxG.state is PlayState)) {
+		for(script in PlayState.instance.scripts.scripts) {
+			script.set("trace", Reflect.makeVarArgs((args) -> {
+				var v:String = Std.string(args.shift());
+				for(a in args) v += ", " + Std.string(a);
+				script.trace(v);
+
+				var posInfo = script.interp.posInfos();
+				log(v, 0, posInfo);
+			}));
+		}
+	}
+}
+
+function postStateSwitch() {
+	replaceTrace();
 }
 
 function create() {
-    container = new Sprite();
-    container.visible = false;
-    container.addEventListener("enterFrame", enterFrame);
+	container = new Sprite();
+	container.visible = false;
+	container.addEventListener("enterFrame", enterFrame);
+	
+	titleText = new TextField();
+	titleText.autoSize = 1; //left
+	titleText.selectable = false;
+	titleText.textColor = 0xFFFFFFFF;
+	titleText.defaultTextFormat = new TextFormat(Paths.font("pixel.otf"), 16);
+	titleText.text = 'Consoleless Logs';
+	container.addChild(titleText);
+	
+	infoTxt = new TextField();
+	infoTxt.autoSize = 1; //left
+	infoTxt.selectable = false;
+	infoTxt.textColor = 0xDDDDDD;
+	infoTxt.defaultTextFormat = new TextFormat(Paths.font("pixel.otf"), 12);
+	infoTxt.text = "[F6] Close - [F7] Clear";
+	container.addChild(infoTxt);
 
-    titleText = new TextField();
-    titleText.autoSize = 1; //left
-    titleText.selectable = false;
-    titleText.textColor = 0xFFFFFFFF;
-    titleText.defaultTextFormat = new TextFormat(Paths.font("pixel.otf"), 16);
-    titleText.text = 'VS Impostor Sussy Logs';
-    container.addChild(titleText);
-    
-    infoTxt = new TextField();
-    infoTxt.autoSize = 1; //left
-    infoTxt.selectable = false;
-    infoTxt.textColor = 0xDDDDDD;
-    infoTxt.defaultTextFormat = new TextFormat(Paths.font("pixel.otf"), 12);
-    infoTxt.text = "[F6] Close - [F7] Clear";
-    container.addChild(infoTxt);
-
-    FlxG.stage.addChild(container);
-    
-    logContainer = new Sprite();
-    logContainer.y = 35;
-    logContainer.scrollRect = new Rectangle(0, 0, window.width, window.height - 35);
-    FlxG.stage.addChild(logContainer);
+	FlxG.stage.addChild(container);
+	
+	logContainer = new Sprite();
+	logContainer.visible = false;
+	logContainer.y = 35;
+	logContainer.scrollRect = new Rectangle(0, 0, window.width, window.height - 35);
+	FlxG.stage.addChild(logContainer);
 }
 
 function onDestroy() {
-    clearLogs();
-    container.removeEventListener("enterFrame", enterFrame);
-    FlxG.stage.removeChild(container);
-    FlxG.stage.removeChild(logContainer);
-    container = null;
-    logContainer = null;
+	clearLogs();
+	container.removeEventListener("enterFrame", enterFrame);
+	FlxG.stage.removeChild(container);
+	FlxG.stage.removeChild(logContainer);
+	container = null;
+	logContainer = null;
 }
 
 function clearLogs() {
-    for(log in logs) {
-        logContainer.removeChild(log.iconSpr);
-        logContainer.removeChild(log.txt);
-        log.iconSpr = null;
-        log = null;
-    }
-    logs = [];
-    scrollY = 0;
+	for(log in logs) {
+		logContainer.removeChild(log.iconSpr);
+		logContainer.removeChild(log.txt);
+		logContainer.removeChild(log.fileTxt);
+		log.iconSpr = null;
+		log = null;
+	}
+	logs = [];
+	scrollY = 0;
 }
 
 // for icon, 0 is info, 1 is warn, 2 is error
-function addLog(icon:Int, contents:String) {
-    var iconSpr = new Sprite();
-    iconSpr.scrollRect = new Rectangle(icon * 16, 0, 16, 16);
+function addLog(icon:Int, contents:String, ?info:PosInfos) {
+	var iconSpr = new Sprite();
+	iconSpr.scrollRect = new Rectangle(icon * 16, 0, 16, 16);
 
-    var bmp = new Bitmap(Assets.getBitmapData(Paths.image('logicons')));
-    iconSpr.addChild(bmp);
-    logContainer.addChild(iconSpr);
+	var bmp = new Bitmap(Assets.getBitmapData(Paths.image('logicons')));
+	iconSpr.addChild(bmp);
+	logContainer.addChild(iconSpr);
 
-    var txt = new TextField();
-    txt.autoSize = 1; //left
-    txt.selectable = false;
-    txt.textColor = 0xFFFFFF;
-    txt.defaultTextFormat = new TextFormat(Paths.font("pixel.otf"), 10);
-    txt.text = contents;
-    logContainer.addChild(txt);
+	var txt = new TextField();
+	txt.autoSize = 1; //left
+	txt.selectable = false;
+	txt.textColor = 0xFFFFFF;
+	txt.defaultTextFormat = new TextFormat(Paths.font("pixel.otf"), 10);
+	txt.text = contents;
+	logContainer.addChild(txt);
 
-    logs.insert(0, {icon: icon, iconSpr: iconSpr, txt: txt, contents: contents});
-    trace(contents);
+	var fileTxt = new TextField();
+	fileTxt.autoSize = 1; //left
+	fileTxt.selectable = false;
+	fileTxt.textColor = 0xFFFFFF;
+	fileTxt.alpha = 0.5;
+	fileTxt.defaultTextFormat = new TextFormat(Paths.font("pixel.otf"), 10);
+	fileTxt.text = (info?.fileName ?? "unknown.hx")+":"+Std.string(info?.lineNumber ?? 0);
+	logContainer.addChild(fileTxt);
+
+	logs.insert(0, {icon: icon, iconSpr: iconSpr, txt: txt, fileTxt: fileTxt, contents: contents});
 }
 
 /**
@@ -154,10 +200,10 @@ function addLog(icon:Int, contents:String) {
  * @param function function
  */
 function function(function_) {
-    return function_;
+	return function_;
 }
 
-public static function log(contents:Dynamic, ?icon:Null<Int>) {
-    if(icon == null) icon = 0;
-    addLog(icon, Std.string(contents));
+public static function log(contents:Dynamic, ?icon:Null<Int>, ?info:PosInfos) {
+	if(icon == null) icon = 0;
+	addLog(icon, Std.string(contents), info);
 }
