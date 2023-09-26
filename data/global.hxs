@@ -1,8 +1,0 @@
-function update(delta:Float) {
-    if(FlxG.keys.justPressed.F5)
-        FlxG.resetState();
-
-    // will make funny YCE like logs system later
-    if(FlxG.keys.justPressed.F6)
-        FlxG.camera.zoom += 0.05;
-}

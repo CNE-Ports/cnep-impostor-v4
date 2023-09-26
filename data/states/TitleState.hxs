@@ -15,18 +15,19 @@ function postCreate() {
     starFG = new FlxBackdrop(Paths.image('menus/mainmenu/starFG'), FlxAxes.XY, 1, 1);
     insert(0, starFG);
 
-    titleText.x += 190;
-    titleText.y -= 5;
     titleText.animation.addByPrefix("idle", "EnterIdle0", 24);
     titleText.animation.addByPrefix("press", "EnterStart0", 24, false);
     titleText.animation.play("idle");
-    titleText.frameOffset.set(0, 0);
+    titleText.updateHitbox();
 }
 
 function postUpdate(delta:Float) {
     starFG.x -= delta * 60 * 0.3;
     starBG.x -= delta * 60 * 0.1;
+    titleText.setPosition(290, (FlxG.height - titleText.height) + 15);
     
-    if(controls.ACCEPT)
+    if(titleText.animation.name == "press")
         titleText.frameOffset.set(275, 2);
+    else
+        titleText.frameOffset.set(0, 0);
 }
